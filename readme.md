@@ -2,13 +2,12 @@
 
 ![Node.js-Express](https://img.shields.io/badge/Node.js-Express-green)
 
-A powerful and elegant web application that converts H5P interactive content to PDF format. Built with Node.js and Express, featuring a beautiful dark theme interface.
+A web application that converts H5P interactive content to PDF format. Built with Node.js and Express, featuring a beautiful dark theme interface.
 
 ---
 
 ## ✨ Features
 
-- **Beautiful Dark UI** — Modern, responsive dark theme interface.
 - **Fast Conversion** — Quick processing of H5P files to PDF.
 - **Multiple H5P Types** — Supports various H5P content types including Course Presentations, Interactive Videos and quizzes.
 - **Drag & Drop** — Intuitive file upload with drag & drop functionality.
