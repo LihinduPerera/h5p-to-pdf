@@ -1,0 +1,9 @@
+# Ignore all PDF files
+*.pdf
+
+# Ignore the temp_h5p folder
+temp_h5p/
+node_modules/
+
+# Ignore all H5P files (usually with .h5p extension)
+*.h5p
