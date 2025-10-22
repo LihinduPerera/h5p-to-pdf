@@ -57,7 +57,12 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
   }
 
   // Create PDF
-  const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 50 });
+  const doc = new PDFDocument({
+    size: 'A4',
+    layout: 'landscape',
+    margins: { top: 50, bottom: 70, left: 50, right: 50 },
+    bufferPages: true
+  });
   const pdfStream = fs.createWriteStream(outputPDFPath);
   doc.pipe(pdfStream);
   
@@ -145,20 +150,21 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
     const presentation = params.presentation;
     if (!presentation || !Array.isArray(presentation.slides)) return;
 
-    const margin = doc.page.margins.left; // 50
     const pageWidth = doc.page.width;
     const pageHeight = doc.page.height;
-    const contentW = pageWidth - 2 * margin;
-    const contentH = pageHeight - 2 * margin;
+    const margins = doc.page.margins;
+    const contentW = pageWidth - margins.left - margins.right;
+    const contentH = pageHeight - margins.top - margins.bottom;
 
+    let slideIndex = 0;
     for (const slide of presentation.slides) {
-      doc.addPage();
+      if (slideIndex > 0) doc.addPage();
 
       // Slide title if present
       if (slide.title) {
         const titleText = stripHTML(slide.title);
         if (titleText) {
-          doc.fontSize(16).text(titleText, margin, margin);
+          doc.fontSize(16).text(titleText, margins.left, margins.top);
           doc.moveDown(0.5);
         }
       }
@@ -171,8 +177,8 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
         const lib = libFull ? libFull.split(' ')[0] : '';
         const libParams = elem.action.params || {};
 
-        const left = margin + (elem.x / 100) * contentW;
-        const top = margin + (elem.y / 100) * contentH;
+        const left = margins.left + (elem.x / 100) * contentW;
+        const top = margins.top + (elem.y / 100) * contentH;
         const w = (elem.width / 100) * contentW;
         const h = (elem.height / 100) * contentH;
 
@@ -210,6 +216,7 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
           }
         }
       }
+      slideIndex++;
     }
   }
 
@@ -260,6 +267,15 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
     await parseCoursePresentation(jsonData, doc, findAsset);
   } else {
     await parseContent(jsonData);
+  }
+
+  // Add page numbers to all pages
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(i);
+    doc.fillColor('gray')
+       .fontSize(10)
+       .text(`Page ${i + 1}`, 0, doc.page.height - 60, { align: 'center', width: doc.page.width });
   }
 
   doc.end();
