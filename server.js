@@ -273,9 +273,12 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
   const range = doc.bufferedPageRange();
   for (let i = 0; i < range.count; i++) {
     doc.switchToPage(i);
+    const originalBottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
     doc.fillColor('gray')
        .fontSize(10)
-       .text(`Page ${i + 1}`, 0, doc.page.height - 60, { align: 'center', width: doc.page.width });
+       .text(`Page ${i + 1}`, 0, doc.page.height - 35, { align: 'center', width: doc.page.width });
+    doc.page.margins.bottom = originalBottom;
   }
 
   doc.end();
