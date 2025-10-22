@@ -60,8 +60,8 @@ async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
   const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 50 });
   const pdfStream = fs.createWriteStream(outputPDFPath);
   doc.pipe(pdfStream);
-  doc.fontSize(20).text("Extracted H5P Content", { align: "center" });
-  doc.moveDown();
+  
+  // Removed the first page with "Extracted H5P Content"
 
   const embeddedImages = new Set();
   function addImageToPDF(imgPath) {

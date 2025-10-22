@@ -4,78 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>H5P to PDF Converter</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        #dropZone { border: 2px dashed #ccc; width: 300px; height: 200px; margin: 50px auto; padding: 20px; }
-        #dropZone.highlight { border-color: #000; }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>H5P to PDF Converter</h1>
-    <div id="dropZone">Drag and drop your .h5p file here<br>or<br><input type="file" id="fileInput" accept=".h5p"></div>
-    <p id="status"></p>
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-file-pdf logo"></i>
+            <h1>H5P to PDF Converter</h1>
+            <p class="subtitle">Convert your H5P interactive content to PDF format</p>
+        </div>
 
-    <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const status = document.getElementById('status');
+        <div class="upload-container">
+            <div id="dropZone" class="drop-zone">
+                <div class="drop-zone-content">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Drag & Drop your .h5p file</h3>
+                    <p>or</p>
+                    <button class="browse-btn">Browse Files</button>
+                    <input type="file" id="fileInput" accept=".h5p">
+                </div>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-bolt"></i>
+                    <span>Fast Conversion</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure & Private</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-highlighter"></i>
+                    <span>Preserves Content</span>
+                </div>
+            </div>
+        </div>
 
-        dropZone.addEventListener('click', () => fileInput.click());
+        <div id="status" class="status"></div>
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('highlight');
-        });
+        <div class="footer">
+            <p>For Development Team Use</p>
+        </div>
+    </div>
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('highlight');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('highlight');
-            const file = e.dataTransfer.files[0];
-            if (file && file.name.endsWith('.h5p')) {
-                uploadFile(file);
-            } else {
-                status.textContent = 'Please drop a .h5p file.';
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                uploadFile(file);
-            }
-        });
-
-        function uploadFile(file) {
-            status.textContent = 'Uploading and converting...';
-            const formData = new FormData();
-            formData.append('h5pFile', file);
-
-            fetch('/upload', {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                if (response.ok) {
-                    return response.blob();
-                } else {
-                    throw new Error('Conversion failed');
-                }
-            }).then(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = file.name.replace(/\.h5p$/, '') + '.pdf';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                status.textContent = 'Conversion complete! PDF downloaded.';
-            }).catch(err => {
-                status.textContent = 'Error: ' + err.message;
-            });
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
