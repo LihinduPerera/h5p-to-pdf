@@ -1,6 +1,6 @@
 # H5P to PDF Converter
 
-![Node.js-Express](https://img.shields.io/badge/Node.js-Express-green) ![License-MIT](https://img.shields.io/badge/License-MIT-blue)
+![Node.js-Express](https://img.shields.io/badge/Node.js-Express-green)
 
 A powerful and elegant web application that converts H5P interactive content to PDF format. Built with Node.js and Express, featuring a beautiful dark theme interface.
 
