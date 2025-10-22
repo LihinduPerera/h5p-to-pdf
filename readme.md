@@ -28,8 +28,8 @@ A powerful and elegant web application that converts H5P interactive content to 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/h5p-to-pdf-converter.git
-cd h5p-to-pdf-converter
+git clone https://github.com/LihinduPerera/h5p-to-pdf.git
+cd h5p-to-pdf
 
 # Install dependencies
 npm install
