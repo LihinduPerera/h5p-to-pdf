@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H5P to PDF Converter</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #dropZone { border: 2px dashed #ccc; width: 300px; height: 200px; margin: 50px auto; padding: 20px; }
+        #dropZone.highlight { border-color: #000; }
+    </style>
+</head>
+<body>
+    <h1>H5P to PDF Converter</h1>
+    <div id="dropZone">Drag and drop your .h5p file here<br>or<br><input type="file" id="fileInput" accept=".h5p"></div>
+    <p id="status"></p>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('highlight');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('highlight');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('highlight');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.h5p')) {
+                uploadFile(file);
+            } else {
+                status.textContent = 'Please drop a .h5p file.';
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        });
+
+        function uploadFile(file) {
+            status.textContent = 'Uploading and converting...';
+            const formData = new FormData();
+            formData.append('h5pFile', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('Conversion failed');
+                }
+            }).then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = file.name.replace(/\.h5p$/, '') + '.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                status.textContent = 'Conversion complete! PDF downloaded.';
+            }).catch(err => {
+                status.textContent = 'Error: ' + err.message;
+            });
+        }
+    </script>
+</body>
+</html>

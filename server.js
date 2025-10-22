@@ -1,17 +1,29 @@
-import fs from "fs-extra"; 
-import path from "path";
-import PDFDocument from "pdfkit";
-import unzipper from "unzipper";
+const express = require('express');
+const multer = require('multer');
+const fs = require('fs-extra');
+const path = require('path');
+const PDFDocument = require('pdfkit');
+const unzipper = require('unzipper');
+const os = require('os');
 
-const h5pFile = "section-1-ppt-155-34470.h5p"; // <-- change if needed
-const extractDir = "./temp_h5p";
-const outputPDF = "output.pdf";
+const app = express();
+const port = 3000;
 
-async function main() {
+// Set up multer for file uploads
+const upload = multer({ dest: os.tmpdir() });
+
+// Serve static files (for the HTML UI)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Main conversion function (adapted from your script)
+async function convertH5PtoPDF(h5pFilePath, outputPDFPath) {
+  const extractDir = path.join(os.tmpdir(), 'temp_h5p_' + Date.now());
+
+  await fs.ensureDir(extractDir);
   await fs.emptyDir(extractDir);
 
   // unzip .h5p (it's a zip) directly into extractDir
-  await fs.createReadStream(h5pFile).pipe(unzipper.Extract({ path: extractDir })).promise();
+  await fs.createReadStream(h5pFilePath).pipe(unzipper.Extract({ path: extractDir })).promise();
 
   // helper to resolve actual asset paths referenced in JSON
   async function findAsset(rel) {
@@ -46,7 +58,7 @@ async function main() {
 
   // Create PDF
   const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 50 });
-  const pdfStream = fs.createWriteStream(outputPDF);
+  const pdfStream = fs.createWriteStream(outputPDFPath);
   doc.pipe(pdfStream);
   doc.fontSize(20).text("Extracted H5P Content", { align: "center" });
   doc.moveDown();
@@ -229,9 +241,7 @@ async function main() {
   }
 
   if (!jsonData) {
-    console.error("Could not find content.json in the extracted H5P. Inspect the extract folder:", extractDir);
-    doc.end();
-    return;
+    throw new Error("Could not find content.json in the extracted H5P.");
   }
 
   // Load h5p.json to determine main library
@@ -252,12 +262,42 @@ async function main() {
     await parseContent(jsonData);
   }
 
-  // Optional: append any images left in images folders that weren't embedded (but skipped for better order control)
-  // If needed, uncomment and adjust.
-
   doc.end();
   await new Promise(resolve => pdfStream.on("finish", resolve));
-  console.log(`✅ Done! Created ${outputPDF}`);
+
+  // Clean up extract dir
+  await fs.remove(extractDir);
 }
 
-main().catch(err => console.error("Fatal error:", err));
+// Route for the UI (serves index.html)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Route to handle file upload and conversion
+app.post('/upload', upload.single('h5pFile'), async (req, res) => {
+  const h5pFilePath = req.file.path;
+  const outputPDFPath = path.join(os.tmpdir(), req.file.originalname.replace(/\.h5p$/, '') + '.pdf');
+
+  try {
+    await convertH5PtoPDF(h5pFilePath, outputPDFPath);
+    res.download(outputPDFPath, path.basename(outputPDFPath), async (err) => {
+      if (err) {
+        console.error(err);
+      }
+      // Clean up temp files
+      await fs.remove(h5pFilePath);
+      await fs.remove(outputPDFPath);
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error converting file: ' + err.message);
+    // Clean up
+    await fs.remove(h5pFilePath);
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+  console.log('Open the URL in your browser to use the UI.');
+});
